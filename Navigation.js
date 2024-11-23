@@ -28,10 +28,10 @@ const AppNavigation = () => {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarStyle: {
-            height: scale(20), // Adjust tab bar height based on screen width
+            height: scale(50), // Adjust tab bar height based on screen width
           },
           tabBarLabelStyle: {
-            fontSize: scale(5), // Adjust label font size for responsiveness
+            fontSize: scale(10), // Adjust label font size for responsiveness
           },
           tabBarIcon: ({ color, size }) => {
             // Setting up icons based on route name

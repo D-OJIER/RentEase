@@ -1,48 +1,17 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { AuthContext } from './AuthContext';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 
 const LoginScreen = ({ navigation }) => {
-  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // Loading state
 
-  const validateInput = () => {
-    if (!email || !password) {
-      Alert.alert('Validation Error', 'Please enter both email and password');
-      return false;
-    }
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
-      return false;
-    }
-    return true;
-  };
-
-  const handleLogin = async () => {
-    if (!validateInput()) return;
-
-    setLoading(true);
-    try {
-      // Perform login logic here (e.g., API call)
-      // Simulate a successful login after a delay
-      setTimeout(() => {
-        login(); // Assuming login() sets the authentication state
-        setLoading(false);
-        navigation.navigate('Main'); // Navigate to the main app screen
-      }, 1000); // Simulating network delay
-    } catch (error) {
-      setLoading(false);
-      Alert.alert('Login Error', 'Something went wrong. Please try again.');
-    }
+  const handleLogin = () => {
+    // Add logic for login
+    navigation.navigate('Home');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -52,16 +21,17 @@ const LoginScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        secureTextEntry
         value={password}
+        secureTextEntry
         onChangeText={setPassword}
       />
-      <Button
-        title={loading ? 'Logging in...' : 'Login'}
-        onPress={handleLogin}
-        disabled={loading} // Disable button while loading
-      />
-      <Button title="Go to Signup" onPress={() => navigation.navigate('Signup')} />
+      <Button title="Login" onPress={handleLogin} />
+      <Text
+        style={styles.link}
+        onPress={() => navigation.navigate('Signup')}
+      >
+        Don't have an account? Sign Up
+      </Text>
     </View>
   );
 };
@@ -72,17 +42,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    height: 50,
+    borderColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 20,
-    paddingHorizontal: 10,
+    marginBottom: 10,
+    paddingLeft: 10,
+  },
+  link: {
+    marginTop: 10,
+    color: 'blue',
   },
 });
 
