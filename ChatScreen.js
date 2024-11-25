@@ -1,75 +1,128 @@
-import React, { useState } from 'react';
-import { 
-  FlatList, 
-  StyleSheet, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
-  Platform, 
-  Image 
+import React, { useContext, useState } from 'react';
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
 } from 'react-native';
-import { ThemedText } from './ThemedText';
+import { UserContext } from './UserContext'; // Import the context
 
-const initialMessages = [
-  { id: '1', text: 'Hi! Is your sofa still available?', sender: 'Lender1', type: 'received', profilePic: 'https://www.example.com/lender1.jpg' },
-  { id: '2', text: 'Yes, I would like to rent it for the weekend.', sender: 'Renter1', type: 'sent', profilePic: 'https://www.example.com/renter1.jpg' },
-  { id: '3', text: 'Can you provide more details about the condition?', sender: 'Lender1', type: 'received', profilePic: 'https://www.example.com/lender1.jpg' },
-  { id: '4', text: 'It\'s in good condition, used only a few times.', sender: 'Renter1', type: 'sent', profilePic: 'https://www.example.com/renter1.jpg' },
+const users = [
+  { id: '1', name: 'Alice (Lender)', profilePic: 'https://c.pxhere.com/images/0d/18/4fa31701d2cfa087836d807967f3-1447663.jpg!d', lastMessage: 'Is the bike still available?' },
+  { id: '2', name: 'Bob (Renter)', profilePic: 'https://c.pxhere.com/images/0d/18/4fa31701d2cfa087836d807967f3-1447663.jpg!d', lastMessage: 'Yes, I can pick it up tomorrow.' },
+  { id: '3', name: 'Charlie (Lender)', profilePic: 'https://c.pxhere.com/images/0d/18/4fa31701d2cfa087836d807967f3-1447663.jpg!d', lastMessage: 'I can rent the camera for $50.' },
+  { id: '4', name: 'Diana (Renter)', profilePic: 'https://icon-library.com/images/profile-icon/profile-icon-4.jpg', lastMessage: 'Great! Can we schedule a time?' },
+  { id: '5', name: 'Ethan (Lender)', profilePic: 'https://c.pxhere.com/images/0d/18/4fa31701d2cfa087836d807967f3-1447663.jpg!d', lastMessage: 'How long do you need the tent?' },
+  { id: '6', name: 'Fiona (Renter)', profilePic: 'https://icon-library.com/images/profile-icon/profile-icon-4.jpg', lastMessage: 'Just for the weekend.' },
+  { id: '7', name: 'Grace (Lender)', profilePic: 'https://icon-library.com/images/profile-icon/profile-icon-4.jpg', lastMessage: 'Let me know if you need the drill.' },
+  { id: '8', name: 'Henry (Renter)', profilePic: 'https://c.pxhere.com/images/0d/18/4fa31701d2cfa087836d807967f3-1447663.jpg!d', lastMessage: 'Thank you! I’ll confirm soon.' },
 ];
 
-export default function ChatScreen() {
-  const [messages, setMessages] = useState(initialMessages);
+const ChatScreen = () => {
+  const { userType } = useContext(UserContext); // Use userType from context
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
 
-  const renderMessage = ({ item }) => (
-    <View style={[styles.messageContainer, item.type === 'sent' ? styles.sentMessageContainer : styles.receivedMessageContainer]}>
-      {/* Profile Picture */}
-      <View style={[styles.profilePicContainer, item.type === 'sent' ? styles.sentProfilePicContainer : styles.receivedProfilePicContainer]}>
-        <Image 
-          source={{ uri: item.profilePic }}
-          style={styles.profilePic} 
-          resizeMode="cover"  // Ensures the image is properly fitted
-        />
-      </View>
+  // Automatically filter users based on userType
+  const filteredUsers = userType === 'Renter'
+    ? users.filter((user) => user.name.includes('(Renter)'))
+    : users.filter((user) => user.name.includes('(Lender)'));
 
-      {/* Message Content */}
-      <View style={[styles.messageContent, item.type === 'sent' ? styles.sentMessageContent : styles.receivedMessageContent]}>
-        {/* Sender Name */}
-        <View style={[styles.senderNameBox, item.type === 'sent' ? styles.sentSenderNameBox : styles.receivedSenderNameBox]}>
-          <ThemedText style={styles.senderNameText}>
-            {item.sender}
-          </ThemedText>
-        </View>
-
-        {/* Message Text */}
-        <View style={[styles.messageBubble, item.type === 'sent' ? styles.sentMessageBubble : styles.receivedMessageBubble]}>
-          <ThemedText style={[styles.messageText, item.type === 'sent' ? styles.sentMessageText : styles.receivedMessageText]}>
-            {item.text}
-          </ThemedText>
-        </View>
-      </View>
-    </View>
-  );
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setMessages([
+      { id: '1', text: user.lastMessage, sender: user.name, type: 'received', profilePic: user.profilePic },
+    ]);
+    setCurrentScreen('chat');
+  };
 
   const sendMessage = () => {
-    if (newMessage.trim() === '') return;
+    if (!newMessage.trim()) return;
 
     const newMessageObj = {
-      id: (messages.length + 1).toString(),
+      id: Date.now().toString(),
       text: newMessage,
-      sender: 'Renter1',
+      sender: 'You',
       type: 'sent',
-      profilePic: 'https://static.vecteezy.com/system/resources/thumbnails/024/646/930/small_2x/ai-generated-stray-cat-in-danger-background-animal-background-photo.jpg', // Placeholder for current user
     };
 
-    setMessages([...messages, newMessageObj]);
+    setMessages([newMessageObj, ...messages]);
     setNewMessage('');
   };
 
-  return (
+  const renderMessage = ({ item }) => (
+    <View
+      style={[
+        styles.messageContainer,
+        item.type === 'sent' ? styles.sentMessage : styles.receivedMessage,
+      ]}
+    >
+      {item.type === 'received' && (
+        <Image
+          source={{ uri: item.profilePic }}
+          style={styles.profilePic}
+        />
+      )}
+      <View
+        style={[
+          styles.messageBubble,
+          item.type === 'sent' ? styles.sentMessageBubble : styles.receivedMessageBubble,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.text}</Text>
+      </View>
+    </View>
+  );
+    
+  const renderUserList = () => (
     <SafeAreaView style={styles.container}>
+      <Text style={styles.screenTitle}>
+        {userType === 'Renter' ? 'Renter Chats' : 'Lender Chats'}
+      </Text>
+      <FlatList
+        data={filteredUsers}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.userContainer}
+            onPress={() => handleUserSelect(item)}
+          >
+            <Image source={{ uri: item.profilePic }} style={styles.profilePic} />
+            <View style={styles.userInfo}>
+              {/* Remove (Lender) or (Renter) from the name */}
+              <Text style={styles.userName}>{item.name.replace(/\s\((Lender|Renter)\)/, '')}</Text>
+              <Text style={styles.lastMessage}>{item.lastMessage}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+      />
+    </SafeAreaView>
+  );
+
+  const renderChatHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => setCurrentScreen('home')}>
+        <Text style={styles.backButton}>←</Text>
+      </TouchableOpacity>
+      <Image source={{ uri: selectedUser.profilePic }} style={styles.headerPic} />
+      {/* Remove (Lender) or (Renter) from the name */}
+      <Text style={styles.headerTitle}>{selectedUser.name.replace(/\s\((Lender|Renter)\)/, '')}</Text>
+    </View>
+  );
+
+
+  const renderChatScreen = () => (
+    <SafeAreaView style={styles.container}>
+      {renderChatHeader()}
       <FlatList
         data={messages}
         renderItem={renderMessage}
@@ -77,7 +130,6 @@ export default function ChatScreen() {
         contentContainerStyle={styles.messagesList}
         inverted
       />
-
       <KeyboardAvoidingView
         style={styles.inputContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -89,137 +141,207 @@ export default function ChatScreen() {
           placeholder="Type a message..."
           placeholderTextColor="#bbb"
         />
-        <TouchableOpacity 
-          style={styles.sendButton}
-          onPress={sendMessage}
-        >
-          <ThemedText style={styles.sendButtonText}>Send</ThemedText>
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+
+  if (currentScreen === 'chat') return renderChatScreen();
+
+  // Directly render the user list based on userType
+  return renderUserList();
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Dark background
+    backgroundColor: '#1D3D47',
+    padding: 16,
   },
-  messagesList: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  listContent: {
+    paddingBottom: 16,
   },
-  messageContainer: {
-    marginVertical: 8,
+  userContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  sentMessageContainer: {
-    justifyContent: 'flex-end',
-    alignSelf: 'flex-end',
-  },
-  receivedMessageContainer: {
-    justifyContent: 'flex-start',
-    alignSelf: 'flex-start',
-  },
-  profilePicContainer: {
-    marginRight: 10,
-    marginTop: 6,
-    borderRadius: 20, // Rounded profile pic container
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: '#2B4D5D',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   profilePic: {
     width: 40,
     height: 40,
     borderRadius: 20,
   },
-  sentProfilePicContainer: {
-    alignSelf: 'flex-end',
-  },
-  receivedProfilePicContainer: {
-    alignSelf: 'flex-start',
-  },
-  messageContent: {
-    flexDirection: 'column',
-    flex: 1,
-    maxWidth: '80%',
-  },
-  sentMessageContent: {
-    alignItems: 'flex-end',
-  },
-  receivedMessageContent: {
-    alignItems: 'flex-start',
-  },
-  senderNameBox: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  sentSenderNameBox: {
-    backgroundColor: '#4A90E2',
-    alignSelf: 'flex-end',
-  },
-  receivedSenderNameBox: {
-    backgroundColor: '#2B4D5D',
-    alignSelf: 'flex-start',
-  },
-  senderNameText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+  userInfo: { marginLeft: 10 },
+  userName: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#CCCCCC',
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#2B4D5D',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2B4D5D',
+    padding: 10,
+  },
+  backButton: {
+    fontSize: 20,
+    color: '#F9A825',
+    paddingRight: 10,
+  },
+  headerTitle: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  headerPic: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 8,
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
   },
   messageBubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    padding: 10,
+    borderRadius: 10,
+    maxWidth: '70%',
+  },
+  sentMessage: {
+    justifyContent: 'flex-end',
+  },
+  receivedMessage: {
+    justifyContent: 'flex-start',
   },
   sentMessageBubble: {
-    backgroundColor: '#4A90E2',
-    borderBottomRightRadius: 4,
+    backgroundColor: '#F9A825',
+    alignSelf: 'flex-end',
   },
   receivedMessageBubble: {
-    backgroundColor: '#2B4D5D',
-    borderBottomLeftRadius: 4,
+    backgroundColor: '#2E2E2E',
+    alignSelf: 'flex-start',
   },
   messageText: {
-    fontSize: 16,
-  },
-  sentMessageText: {
     color: '#FFFFFF',
-    textAlign: 'right',
-  },
-  receivedMessageText: {
-    color: '#FFFFFF',
-    textAlign: 'left',
   },
   inputContainer: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#1D1D1D', // Dark background for input area
-    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#2B4D5D',
   },
   input: {
     flex: 1,
-    backgroundColor: '#333333', // Dark input area
+    backgroundColor: '#333',
+    color: '#FFFFFF',
+    paddingHorizontal: 12,
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     marginRight: 10,
-    color: '#FFFFFF', // White text color
   },
   sendButton: {
-    backgroundColor: '#4A90E2',
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    backgroundColor: '#F9A825',
     paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   sendButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '60%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#FF5733',
+  },
+  modalDescription: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 12,
+    color: '#FF5733',
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  modalPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#F9A825',
+    marginBottom: 16,
+  },
+  darkButton: {
+    backgroundColor: '#F9A825',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  lightButton: {
+    backgroundColor: '#1D3D47',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  darkButtonText: {
+    color: '#1D3D47',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  lightButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#D32F2F',
+  },
+  requestButton: {
+    backgroundColor: '#4CAF50',
+    marginTop: 10,
   },
 });
+
+export default ChatScreen;

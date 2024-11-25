@@ -116,6 +116,12 @@ export default function HomeScreen() {
             <TouchableOpacity style={modalButtonStyles} onPress={() => alert(`${selectedItem.name} added to cart!`)}>
               <Text style={modalButtonTextStyles}>Add to Cart</Text>
             </TouchableOpacity>
+            <TouchableOpacity 
+          style={[styles.darkButton, styles.requestButton]} 
+          onPress={() => alert(`Request placed for ${selectedItem.name}!`)}
+        >
+          <Text style={styles.darkButtonText}>Request</Text>
+        </TouchableOpacity>
             <TouchableOpacity style={[modalButtonStyles, styles.closeButton]} onPress={() => setModalVisible(false)}>
               <Text style={modalButtonTextStyles}>Close</Text>
             </TouchableOpacity>
@@ -249,5 +255,10 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     backgroundColor: '#D32F2F',
+
+  },
+  requestButton: {
+    backgroundColor: '#4CAF50', // Green color for Request
+    marginTop: 10, // Space between buttons
   },
 });
